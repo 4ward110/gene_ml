@@ -1,2 +1,2 @@
-## this repo contain code for pediatric sepsis predict based on machine learning paper
+# This repo contains code for paper : pediatric sepsis based on machine learning
 
