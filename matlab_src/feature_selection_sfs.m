@@ -78,15 +78,51 @@ y_test = testData(:,109);
 
 SVMModel = fitcsvm(X_train,y_train,'KernelFunction','linear','Standardize',false);
 
+SVMModel = fitPosterior(SVMModel);
+[~,scores2] = resubPredict(SVMModel);
+[x2,y2,t2,auc2] = perfcurve(y_train,scores2(:,2),1);
+figure
+subplot(1,2,1)
+plot(x2,y2,'LineWidth',2.0)
+xlabel('False positive rate'); ylabel('True positive rate');
+legend('Support Vector Machines','Location','Best')
+title('ROC for classification by SVM-train');
+
+
 [y_pred, score] = predict(SVMModel, X_test);
+[x,y,t,auc] = perfcurve(y_test,score(:,2),1);
+subplot(1,2,2)
+plot(x,y,'LineWidth',2.0)
+xlabel('False positive rate'); ylabel('True positive rate');
+legend('Support Vector Machines','Location','Best')
+title('ROC for classification by SVM-test');
 
 confusionchart(y_test, y_pred)
 M = evaluate(y_pred, y_test);
 
-SVMModel = fitPosterior(SVMModel);
-[~,scores2] = resubPredict(SVMModel);
-[x2,y2,~,auc2] = perfcurve(y_train,scores2(:,2),1);
-figure
-plot(x2,y2)
-xlabel('False positive rate'); ylabel('True positive rate');
-title('ROC for classification by SVM');
+%% Sequential feature selection
+% get score off all feature
+gene_score = zeros(1,108);
+ratio = 0.8;
+[X_train1,X_test1,y_train1,y_test1] = train_test_strategy(trainData,ratio);
+
+for i = 1:108
+%     total = 0;
+    % fit to a logistic regression
+    mdlNB = fitcnb(X_train1(:,i),y_train1(:,1));
+%     SVMModel = fitcsvm(X_train1(:,i),y_train1(:,1),'KernelFunction','linear','KernelScale','auto');
+%     mdl = fitglm(X_train1(:,i),y_train1(:,:),'Distribution','binomial','Link','logit');
+    [y_pred1, score1] = predict(mdlNB, X_test1(:,i));
+    result = evaluate(y_pred1, y_test1(:,1));
+    result('acc')
+%     X_train1(:,i)
+%     gene_score(i) = result('acc');
+end
+
+%% K-fold split
+% s = trainData(:,109);
+% cv = cvpartition(s,'KFold',5,'Stratify',true);
+
+
+
+
